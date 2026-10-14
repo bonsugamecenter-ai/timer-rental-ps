@@ -32,8 +32,16 @@ button.danger{background:#b63848}
 
 <section class="panel">
 <h3>Mulai sesi rental</h3>
-<label>Nama PS / pelanggan</label>
-<input id="nama" placeholder="Contoh: PS 1 - Rayyan">
+<label for="ruangan">Ruangan</label>
+<select id="ruangan" name="ruangan" required>
+  <option value="" disabled selected>
+    Pilih ruangan
+  </option>
+  <option value="VIP">VIP</option>
+  <option value="VVIP">VVIP</option>
+  <option value="AC Privat">AC Privat</option>
+  <option value="Smoke">Smoke</option>
+</select>
 <label>Durasi sewa</label>
 <select id="durasi">
 <option value="30">30 menit</option>
