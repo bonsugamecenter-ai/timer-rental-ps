@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Timer Rental PS</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#101522;color:#f5f7ff;font-family:Arial,sans-serif;padding:20px}
+main{max-width:850px;margin:auto}
+h1{margin-bottom:5px}
+.sub{color:#aeb8d0}
+.panel,.timer{background:#1b2436;border:1px solid #303d56;border-radius:15px;padding:16px;margin-top:16px}
+input,select,button{font:inherit;border-radius:9px;padding:12px;border:1px solid #42516d}
+input,select{background:#101827;color:white;width:100%;margin:6px 0 12px}
+button{cursor:pointer;background:#3478f6;color:white;border:0;margin:4px 3px 4px 0}
+button.secondary{background:#354158}
+button.danger{background:#b63848}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.timerhead{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.name{font-size:19px;font-weight:bold}
+.time{font-size:34px;font-weight:bold;margin:12px 0}
+.small{color:#b5c0d7;font-size:14px}
+.empty{color:#aeb8d0;text-align:center;padding:20px}
+@media(max-width:520px){.grid{grid-template-columns:1fr}.time{font-size:29px}}
+</style>
+</head>
+<body>
+<main>
+<h1>🎮 Timer Rental PS</h1>
+<div class="sub">Dashboard waktu sewa PlayStation</div>
+
+<section class="panel">
+<h3>Mulai sesi rental</h3>
+<label>Nama PS / pelanggan</label>
+<input id="nama" placeholder="Contoh: PS 1 - Andi">
+<label>Durasi sewa</label>
+<select id="durasi">
+<option value="30">30 menit</option>
+<option value="60" selected>1 jam</option>
+<option value="90">1 jam 30 menit</option>
+<option value="120">2 jam</option>
+<option value="180">3 jam</option>
+<option value="240">4 jam</option>
+</select>
+<button onclick="tambah()">▶ Mulai timer</button>
+</section>
+
+<h3>Sesi berjalan</h3>
+<div id="daftar"></div>
+<div class="small" style="margin-top:18px">Catatan: timer ini berjalan di browser. Timer tidak mematikan TV secara otomatis. Jangan tutup browser jika ingin melihat hitung mundur.</div>
+</main>
+<script>
+let sesi=[];
+try{sesi=JSON.parse(localStorage.getItem('timerRentalPS')||'[]')}catch(e){sesi=[]}
+function simpan(){localStorage.setItem('timerRentalPS',JSON.stringify(sesi))}
+function tambah(){
+ let nama=document.getElementById('nama').value.trim()||'Sesi PS';
+ let menit=Number(document.getElementById('durasi').value);
+ sesi.push({id:Date.now()+Math.random(),nama,akhir:Date.now()+menit*60000});
+ document.getElementById('nama').value='';
+ simpan();tampil();
+}
+function format(ms){
+ let det=Math.max(0,Math.ceil(ms/1000));
+ let j=Math.floor(det/3600),m=Math.floor(det%3600/60),d=det%60;
+ return (j?j+':':'')+String(m).padStart(2,'0')+':'+String(d).padStart(2,'0');
+}
+function tambah15(id){
+ let s=sesi.find(x=>x.id===id);if(s){s.akhir=Math.max(Date.now(),s.akhir)+900000;simpan();tampil()}
+}
+function selesai(id){sesi=sesi.filter(x=>x.id!==id);simpan();tampil()}
+function tampil(){
+ let el=document.getElementById('daftar');
+ if(!sesi.length){el.innerHTML='<div class="panel empty">Belum ada timer. Mulai sesi pertama di atas.</div>';return}
+ el.innerHTML=sesi.map(s=>{
+ let sisa=s.akhir-Date.now(),habis=sisa<=0;
+ return '<div class="timer"><div class="timerhead"><div class="name">'+aman(s.nama)+'</div><span>'+(habis?'WAKTU HABIS':'AKTIF')+'</span></div><div class="time">'+format(sisa)+'</div><div class="small">Selesai: '+new Date(s.akhir).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+'</div><button onclick="tambah15('+s.id+')">+15 menit</button><button class="danger" onclick="selesai('+s.id+')">Selesaikan</button></div>'
+ }).join('');
+}
+function aman(t){return t.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+tampil();setInterval(tampil,1000);
+</script>
+</body>
+</html>
