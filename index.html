@@ -6,114 +6,80 @@
 <title>Timer Rental PS</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;padding:18px;background:#101522;color:#f5f7ff;font-family:Arial,sans-serif}
-h1{text-align:center}
-.room{background:#1b2436;border:1px solid #303d56;border-radius:14px;padding:16px;margin:14px auto;max-width:500px}
-.time{font-size:38px;font-weight:bold;text-align:center;margin:18px}
-select,button{width:100%;padding:12px;margin:5px 0;border:0;border-radius:8px;font-size:16px}
-select{background:#303d56;color:white}
-button{background:#3978f6;color:white;font-weight:bold}
-button.stop{background:#c43d4b}
-.status{text-align:center;color:#b8c7e8}
+body{margin:0;background:#101522;color:#f5f7ff;font-family:Arial,sans-serif;padding:20px}
+main{max-width:850px;margin:auto}
+h1{margin-bottom:5px}
+.sub{color:#aeb8d0}
+.panel,.timer{background:#1b2436;border:1px solid #303d56;border-radius:15px;padding:16px;margin-top:16px}
+input,select,button{font:inherit;border-radius:9px;padding:12px;border:1px solid #42516d}
+input,select{background:#101827;color:white;width:100%;margin:6px 0 12px}
+button{cursor:pointer;background:#3478f6;color:white;border:0;margin:4px 3px 4px 0}
+button.secondary{background:#354158}
+button.danger{background:#b63848}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.timerhead{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.name{font-size:19px;font-weight:bold}
+.time{font-size:34px;font-weight:bold;margin:12px 0}
+.small{color:#b5c0d7;font-size:14px}
+.empty{color:#aeb8d0;text-align:center;padding:20px}
+@media(max-width:520px){.grid{grid-template-columns:1fr}.time{font-size:29px}}
 </style>
 </head>
 <body>
-<h1>🎮 Timer Rental PS Bonsu Game Center</h1>
-<div id="rooms"></div>
+<main>
+<h1>🎮 Timer Rental PS Bonsu game center</h1>
+<div class="sub">Dashboard waktu sewa PlayStation</div>
+
+<section class="panel">
+<h3>Mulai sesi rental</h3>
+<label>Nama PS / pelanggan</label>
+<input id="nama" placeholder="Contoh: PS 1 - Andi">
+<label>Durasi sewa</label>
+<select id="durasi">
+<option value="30">30 menit</option>
+<option value="60" selected>1 jam</option>
+<option value="90">1 jam 30 menit</option>
+<option value="120">2 jam</option>
+<option value="180">3 jam</option>
+<option value="240">4 jam</option>
+</select>
+<button onclick="tambah()">▶ Mulai timer</button>
+</section>
+
+<h3>Sesi berjalan</h3>
+<div id="daftar"></div>
+<div class="small" style="margin-top:18px">Catatan: timer ini berjalan di browser. Timer tidak mematikan TV secara otomatis. Jangan tutup browser jika ingin melihat hitung mundur.</div>
+</main>
 <script>
-const sessions = {};
-const roomNames = ["Ruangan 1","Ruangan 2","Ruangan 3","Ruangan 4"];
-
-function formatTime(seconds){
-  seconds = Math.max(0, seconds);
-  const h = Math.floor(seconds/3600);
-  const m = Math.floor((seconds%3600)/60);
-  const s = seconds%60;
-  return [h,m,s].map(n=>String(n).padStart(2,"0")).join(":");
+let sesi=[];
+try{sesi=JSON.parse(localStorage.getItem('timerRentalPS')||'[]')}catch(e){sesi=[]}
+function simpan(){localStorage.setItem('timerRentalPS',JSON.stringify(sesi))}
+function tambah(){
+ let nama=document.getElementById('nama').value.trim()||'Sesi PS';
+ let menit=Number(document.getElementById('durasi').value);
+ sesi.push({id:Date.now()+Math.random(),nama,akhir:Date.now()+menit*60000});
+ document.getElementById('nama').value='';
+ simpan();tampil();
 }
-
-function draw(){
-  document.getElementById("rooms").innerHTML = roomNames.map((name,i)=>`
-    <div class="room">
-      <h2>${name}</h2>
-      <select id="duration${i}">
-        <option value="3600">1 Jam</option>
-        <option value="7200">2 Jam</option>
-        <option value="10800">3 Jam</option>
-      </select>
-      <div class="time" id="time${i}">01:00:00</div>
-      <div class="status" id="status${i}">Belum dimulai</div>
-      <button onclick="start(${i})">Mulai Timer</button>
-      <button onclick="pause(${i})">Jeda / Lanjutkan</button>
-      <button onclick="addTime(${i})">Tambah 10 Menit</button>
-      <button class="stop" onclick="finish(${i})">Selesai / Reset</button>
-    </div>
-  `).join("");
+function format(ms){
+ let det=Math.max(0,Math.ceil(ms/1000));
+ let j=Math.floor(det/3600),m=Math.floor(det%3600/60),d=det%60;
+ return (j?j+':':'')+String(m).padStart(2,'0')+':'+String(d).padStart(2,'0');
 }
-
-function start(i){
-  const x=sessions[i];
-  if(x && x.running) return;
-  if(x && x.remaining>0){
-    x.endAt=Date.now()+x.remaining*1000;
-    x.running=true;
-  }else{
-    const duration=Number(document.getElementById("duration"+i).value);
-    sessions[i]={remaining:duration,endAt:Date.now()+duration*1000,running:true,finished:false};
-  }
-  update();
+function tambah15(id){
+ let s=sesi.find(x=>x.id===id);if(s){s.akhir=Math.max(Date.now(),s.akhir)+900000;simpan();tampil()}
 }
-
-function pause(i){
-  const x=sessions[i];
-  if(!x || x.finished) return;
-  if(x.running){
-    x.remaining=Math.max(0,Math.ceil((x.endAt-Date.now())/1000));
-    x.running=false;
-  }else if(x.remaining>0){
-    x.endAt=Date.now()+x.remaining*1000;
-    x.running=true;
-  }
-  update();
+function selesai(id){sesi=sesi.filter(x=>x.id!==id);simpan();tampil()}
+function tampil(){
+ let el=document.getElementById('daftar');
+ if(!sesi.length){el.innerHTML='<div class="panel empty">Belum ada timer. Mulai sesi pertama di atas.</div>';return}
+ el.innerHTML=sesi.map(s=>{
+ let sisa=s.akhir-Date.now(),habis=sisa<=0;
+ return '<div class="timer"><div class="timerhead"><div class="name">'+aman(s.nama)+'</div><span>'+(habis?'WAKTU HABIS':'AKTIF')+'</span></div><div class="time">'+format(sisa)+'</div><div class="small">Selesai: '+new Date(s.akhir).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+'</div><button onclick="tambah15('+s.id+')">+15 menit</button><button class="danger" onclick="selesai('+s.id+')">Selesaikan</button></div>'
+ }).join('');
 }
-
-function addTime(i){
-  const x=sessions[i];
-  if(!x || x.finished) return;
-  if(x.running){
-    x.endAt+=600000;
-  }else{
-    x.remaining+=600;
-  }
-  update();
-}
-
-function finish(i){
-  delete sessions[i];
-  document.getElementById("time"+i).textContent=
-    formatTime(Number(document.getElementById("duration"+i).value));
-  document.getElementById("status"+i).textContent="Belum dimulai";
-}
-
-function update(){
-  roomNames.forEach((name,i)=>{
-    const x=sessions[i];
-    if(!x) return;
-    if(x.running){
-      x.remaining=Math.max(0,Math.ceil((x.endAt-Date.now())/1000));
-      if(x.remaining===0){
-        x.running=false;
-        x.finished=true;
-        alert(name+" — WAKTU HABIS!");
-      }
-    }
-    document.getElementById("time"+i).textContent=formatTime(x.remaining);
-    document.getElementById("status"+i).textContent=
-      x.finished?"Waktu habis":x.running?"Sedang berjalan":"Dijeda";
-  });
-}
-draw();
-setInterval(update,1000);
+function aman(t){return t.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+tampil();setInterval(tampil,1000);
 </script>
 </body>
 </html>
