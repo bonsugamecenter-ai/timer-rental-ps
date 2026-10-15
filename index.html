@@ -1,93 +1,433 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Timer Rental PS</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;background:#101522;color:#f5f7ff;font-family:Arial,sans-serif;padding:20px}
-main{max-width:850px;margin:auto}
-h1{margin-bottom:5px}
-.sub{color:#aeb8d0}
-.panel,.timer{background:#1b2436;border:1px solid #303d56;border-radius:15px;padding:16px;margin-top:16px}
-input,select,button{font:inherit;border-radius:9px;padding:12px;border:1px solid #42516d}
-input,select{background:#101827;color:white;width:100%;margin:6px 0 12px}
-button{cursor:pointer;background:#3478f6;color:white;border:0;margin:4px 3px 4px 0}
-button.secondary{background:#354158}
-button.danger{background:#b63848}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.timerhead{display:flex;justify-content:space-between;gap:10px;align-items:center}
-.name{font-size:19px;font-weight:bold}
-.time{font-size:34px;font-weight:bold;margin:12px 0}
-.small{color:#b5c0d7;font-size:14px}
-.empty{color:#aeb8d0;text-align:center;padding:20px}
-@media(max-width:520px){.grid{grid-template-columns:1fr}.time{font-size:29px}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timer Rental PS Bonsu Game Center</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .pulse-red {
+            animation: pulse-red-anim 1.5s infinite;
+        }
+        @keyframes pulse-red-anim {
+            0%, 100% { border-color: rgba(239, 68, 68, 0.9); box-shadow: 0 0 20px rgba(239, 68, 68, 0.5); }
+            50% { border-color: rgba(239, 68, 68, 0.3); box-shadow: 0 0 5px rgba(239, 68, 68, 0.1); }
+        }
+    </style>
 </head>
-<body>
-<main>
-<h1>🎮 Timer Rental PS Bonsu game center</h1>
-<div class="sub">Dashboard waktu sewa PlayStation</div>
+<body class="min-h-screen pb-12 flex flex-col items-center justify-start p-4 md:p-8">
 
-<section class="panel">
-<h3>Mulai sesi rental</h3>
-<label for="ruangan">Ruangan</label>
-<select id="ruangan" name="ruangan" required>
-  <option value="" disabled selected>
-    Pilih ruangan
-  </option>
-  <option value="VIP">VIP</option>
-  <option value="VVIP">VVIP</option>
-  <option value="AC Privat">AC Privat</option>
-  <option value="Smoke">Smoke</option>
-</select>
-<label>Durasi sewa</label>
-<select id="durasi">
-<option value="30">30 menit</option>
-<option value="60" selected>1 jam</option>
-<option value="90">1 jam 30 menit</option>
-<option value="120">2 jam</option>
-<option value="180">3 jam</option>
-<option value="240">4 jam</option>
-</select>
-<button onclick="tambah()">▶ Mulai timer</button>
-</section>
+    <!-- Header Section -->
+    <header class="w-full max-w-3xl mb-8 text-left">
+        <h1 class="text-2xl md:text-3xl font-extrabold text-white flex items-center gap-3">
+            <span>🎮</span> Timer Rental PS Bonsu game center
+        </h1>
+        <p class="text-slate-400 text-sm md:text-base mt-1">
+            Dashboard waktu sewa PlayStation & Multi-Sesi Realtime
+        </p>
+    </header>
 
-<h3>Sesi berjalan</h3>
-<div id="daftar"></div>
-<div class="small" style="margin-top:18px">Catatan: timer ini berjalan di browser. Timer tidak mematikan TV secara otomatis. Jangan tutup browser jika ingin melihat hitung mundur.</div>
-</main>
-<script>
-let sesi=[];
-try{sesi=JSON.parse(localStorage.getItem('timerRentalPS')||'[]')}catch(e){sesi=[]}
-function simpan(){localStorage.setItem('timerRentalPS',JSON.stringify(sesi))}
-function tambah(){
- let nama=document.getElementById('nama').value.trim()||'Sesi PS';
- let menit=Number(document.getElementById('durasi').value);
- sesi.push({id:Date.now()+Math.random(),nama,akhir:Date.now()+menit*60000});
- document.getElementById('nama').value='';
- simpan();tampil();
-}
-function format(ms){
- let det=Math.max(0,Math.ceil(ms/1000));
- let j=Math.floor(det/3600),m=Math.floor(det%3600/60),d=det%60;
- return (j?j+':':'')+String(m).padStart(2,'0')+':'+String(d).padStart(2,'0');
-}
-function tambah15(id){
- let s=sesi.find(x=>x.id===id);if(s){s.akhir=Math.max(Date.now(),s.akhir)+900000;simpan();tampil()}
-}
-function selesai(id){sesi=sesi.filter(x=>x.id!==id);simpan();tampil()}
-function tampil(){
- let el=document.getElementById('daftar');
- if(!sesi.length){el.innerHTML='<div class="panel empty">Belum ada timer. Mulai sesi pertama di atas.</div>';return}
- el.innerHTML=sesi.map(s=>{
- let sisa=s.akhir-Date.now(),habis=sisa<=0;
- return '<div class="timer"><div class="timerhead"><div class="name">'+aman(s.nama)+'</div><span>'+(habis?'WAKTU HABIS':'AKTIF')+'</span></div><div class="time">'+format(sisa)+'</div><div class="small">Selesai: '+new Date(s.akhir).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+'</div><button onclick="tambah15('+s.id+')">+15 menit</button><button class="danger" onclick="selesai('+s.id+')">Selesaikan</button></div>'
- }).join('');
-}
-function aman(t){return t.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-tampil();setInterval(tampil,1000);
-</script>
+    <main class="w-full max-w-3xl space-y-8">
+        <!-- Form Mulai Sesi Rental -->
+        <section class="glass-card rounded-2xl p-6 shadow-xl border border-slate-700/50">
+            <h2 class="text-lg font-bold text-slate-100 mb-5 flex items-center gap-2">
+                <i class="fa-solid fa-circle-play text-blue-500"></i> Mulai sesi rental baru
+            </h2>
+
+            <form id="startTimerForm" class="space-y-5">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Select Ruangan -->
+                    <div>
+                        <label for="roomSelect" class="block text-sm font-medium text-slate-300 mb-2">
+                            Pilihan Ruangan
+                        </label>
+                        <select id="roomSelect" class="w-full bg-slate-900/90 border border-slate-700 text-slate-100 text-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 p-3.5 transition-all outline-none">
+                            <option value="VIP">VIP</option>
+                            <option value="VVIP">VVIP</option>
+                            <option value="Smoke">Smoke Room</option>
+                            <option value="AC Privat" selected>AC Privat</option>
+                        </select>
+                    </div>
+
+                    <!-- Input Nomor / Nama Station (Opsional) -->
+                    <div>
+                        <label for="stationInput" class="block text-sm font-medium text-slate-300 mb-2">
+                            Nomor / Nama Station <span class="text-xs text-slate-500">(Opsional)</span>
+                        </label>
+                        <input type="text" id="stationInput" placeholder="Contoh: PS5 - Unit 01" class="w-full bg-slate-900/90 border border-slate-700 text-slate-100 text-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 p-3.5 transition-all outline-none">
+                    </div>
+                </div>
+
+                <!-- Select Durasi Sewa -->
+                <div>
+                    <label for="durationSelect" class="block text-sm font-medium text-slate-300 mb-2">
+                        Pilihan Durasi Sewa
+                    </label>
+                    <select id="durationSelect" class="w-full bg-slate-900/90 border border-slate-700 text-slate-100 text-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 p-3.5 transition-all outline-none">
+                        <option value="3600">1 Jam (3600 detik)</option>
+                        <option value="5400">1 Jam 30 Menit</option>
+                        <option value="7200" selected>2 Jam (7200 detik)</option>
+                        <option value="10800">3 Jam (10800 detik)</option>
+                        <option value="custom">Kustom (Menit)...</option>
+                    </select>
+                </div>
+
+                <!-- Input Durasi Custom (Hidden secara default) -->
+                <div id="customDurationGroup" class="hidden">
+                    <label for="customMinutes" class="block text-sm font-medium text-slate-300 mb-2">
+                        Masukkan Durasi Kustom (dalam menit)
+                    </label>
+                    <input type="number" id="customMinutes" min="1" placeholder="45" class="w-full bg-slate-900/90 border border-slate-700 text-slate-100 text-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 p-3.5 transition-all outline-none">
+                </div>
+
+                <!-- Tombol Submit -->
+                <button type="submit" class="w-full sm:w-auto px-6 py-3.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-600/30 transition-all duration-200 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-play text-xs"></i> Mulai timer sewa
+                </button>
+            </form>
+        </section>
+
+        <!-- Daftar Sesi Berjalan -->
+        <section class="space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+                    <span>Sesi berjalan</span>
+                </h2>
+                <span id="activeCountBadge" class="text-xs bg-slate-800 text-slate-400 font-medium px-3 py-1 rounded-full border border-slate-700/50">0 Aktif</span>
+            </div>
+
+            <div id="sessionsContainer" class="space-y-4">
+                <!-- Pesan Kosong / Default State -->
+                <div id="emptyState" class="glass-card rounded-2xl p-8 text-center border border-slate-800">
+                    <p class="text-slate-400 text-sm">
+                        Belum ada timer aktif. Silakan mulai sesi rental di atas.
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- JavaScript Logika & LocalStorage -->
+    <script>
+        // Array untuk menyimpan data timer aktif
+        let timers = [];
+
+        // Referensi Elemen DOM
+        const startTimerForm = document.getElementById('startTimerForm');
+        const roomSelect = document.getElementById('roomSelect');
+        const stationInput = document.getElementById('stationInput');
+        const durationSelect = document.getElementById('durationSelect');
+        const customDurationGroup = document.getElementById('customDurationGroup');
+        const customMinutes = document.getElementById('customMinutes');
+        const sessionsContainer = document.getElementById('sessionsContainer');
+        const emptyState = document.getElementById('emptyState');
+        const activeCountBadge = document.getElementById('activeCountBadge');
+
+        // Load data dari localStorage saat pertama kali dibuka
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTimers = localStorage.getItem('bonsu_ps_timers');
+            if (savedTimers) {
+                try {
+                    const parsed = JSON.parse(savedTimers);
+                    const now = Date.now();
+
+                    // Hitung selisih waktu jika aplikasi ditutup/refresh
+                    timers = parsed.map(t => {
+                        if (!t.isPaused && !t.isFinished) {
+                            const elapsedSeconds = Math.floor((now - t.lastUpdated) / 1000);
+                            t.remainingSeconds = Math.max(0, t.remainingSeconds - elapsedSeconds);
+                            if (t.remainingSeconds === 0) {
+                                t.isFinished = true;
+                            }
+                        }
+                        return t;
+                    });
+                } catch (e) {
+                    console.error("Gagal memuat local storage", e);
+                    timers = [];
+                }
+            }
+
+            renderTimers();
+            startGlobalInterval();
+        });
+
+        // Toggle form input custom durasi
+        durationSelect.addEventListener('change', (e) => {
+            if (e.target.value === 'custom') {
+                customDurationGroup.classList.remove('hidden');
+                customMinutes.required = true;
+            } else {
+                customDurationGroup.classList.add('hidden');
+                customMinutes.required = false;
+            }
+        });
+
+        // Event saat form disubmit (Mulai Sesi Baru)
+        startTimerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            let totalSeconds = 0;
+            const selectedVal = durationSelect.value;
+
+            if (selectedVal === 'custom') {
+                const mins = parseInt(customMinutes.value) || 0;
+                if (mins <= 0) return;
+                totalSeconds = mins * 60;
+            } else {
+                totalSeconds = parseInt(selectedVal);
+            }
+
+            const room = roomSelect.value;
+            const station = stationInput.value.trim() ? stationInput.value.trim() : 'Unit Utama';
+
+            const newTimer = {
+                id: Date.now(),
+                room: room,
+                station: station,
+                totalSeconds: totalSeconds,
+                remainingSeconds: totalSeconds,
+                isPaused: false,
+                isFinished: false,
+                lastUpdated: Date.now()
+            };
+
+            timers.push(newTimer);
+            saveToLocalStorage();
+            renderTimers();
+
+            // Reset input form opsional
+            stationInput.value = '';
+        });
+
+        // Interval Global untuk mengurangi sisa waktu per detik
+        function startGlobalInterval() {
+            setInterval(() => {
+                let hasChanges = false;
+                const now = Date.now();
+
+                timers.forEach(timer => {
+                    if (!timer.isPaused && !timer.isFinished && timer.remainingSeconds > 0) {
+                        timer.remainingSeconds--;
+                        timer.lastUpdated = now;
+                        hasChanges = true;
+
+                        // Update tampilan realtime per kartu
+                        updateTimerUI(timer.id);
+
+                        // Cek jika waktu habis
+                        if (timer.remainingSeconds === 0) {
+                            timer.isFinished = true;
+                            playAlertSound();
+                            renderTimers(); // Render ulang untuk efek alarm merah
+                        }
+                    }
+                });
+
+                if (hasChanges) {
+                    saveToLocalStorage();
+                }
+            }, 1000);
+        }
+
+        // Simpan state ke localStorage
+        function saveToLocalStorage() {
+            localStorage.setItem('bonsu_ps_timers', JSON.stringify(timers));
+        }
+
+        // Web Audio API untuk Beep / Alarm sederhana
+        function playAlertSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // Nada tinggi
+                gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime);
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 1.5);
+            } catch (e) {
+                console.log("Audio diblokir browser atau tidak didukung.");
+            }
+        }
+
+        // Format detik menjadi format 00:00:00
+        function formatTime(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = seconds % 60;
+
+            const pad = (num) => String(num).padStart(2, '0');
+            return `${pad(h)}:${pad(m)}:${pad(s)}`;
+        }
+
+        // Tambah Waktu (+30 Menit)
+        function addTime(id, minutes = 30) {
+            const timer = timers.find(t => t.id === id);
+            if (!timer) return;
+
+            timer.totalSeconds += minutes * 60;
+            timer.remainingSeconds += minutes * 60;
+            
+            if (timer.isFinished) {
+                timer.isFinished = false;
+            }
+
+            timer.lastUpdated = Date.now();
+            saveToLocalStorage();
+            renderTimers();
+        }
+
+        // Toggle Jeda / Lanjut (Pause / Resume)
+        function togglePause(id) {
+            const timer = timers.find(t => t.id === id);
+            if (timer && !timer.isFinished) {
+                timer.isPaused = !timer.isPaused;
+                timer.lastUpdated = Date.now();
+                saveToLocalStorage();
+                renderTimers();
+            }
+        }
+
+        // Hentikan dan Hapus Timer dari Sesi
+        function stopTimer(id) {
+            timers = timers.filter(t => t.id !== id);
+            saveToLocalStorage();
+            renderTimers();
+        }
+
+        // Update UI komponen secara spesifik tanpa re-render keseluruhan agar mulus
+        function updateTimerUI(id) {
+            const timer = timers.find(t => t.id === id);
+            if (!timer) return;
+
+            const card = document.getElementById(`timer-card-${id}`);
+            if (!card) return;
+
+            const timeDisplay = card.querySelector('.timer-display');
+            const progressBar = card.querySelector('.progress-bar');
+
+            if (timeDisplay) {
+                timeDisplay.textContent = formatTime(timer.remainingSeconds);
+            }
+
+            if (progressBar) {
+                const percentage = Math.max(0, Math.min(100, (timer.remainingSeconds / timer.totalSeconds) * 100));
+                progressBar.style.width = `${percentage}%`;
+
+                if (percentage < 10) {
+                    progressBar.className = "progress-bar h-full bg-red-500 transition-all duration-300";
+                } else {
+                    progressBar.className = "progress-bar h-full bg-blue-500 transition-all duration-300";
+                }
+            }
+        }
+
+        // Render Seluruh Kartu Sesi Timer
+        function renderTimers() {
+            if (timers.length === 0) {
+                emptyState.classList.remove('hidden');
+                activeCountBadge.textContent = "0 Aktif";
+            } else {
+                emptyState.classList.add('hidden');
+                activeCountBadge.textContent = `${timers.length} Aktif`;
+            }
+
+            // Bersihkan kartu sesi lama
+            const existingCards = sessionsContainer.querySelectorAll('.session-card');
+            existingCards.forEach(c => c.remove());
+
+            // Buat ulang elemen berdasarkan data array
+            timers.forEach(timer => {
+                const card = document.createElement('div');
+                card.id = `timer-card-${timer.id}`;
+                
+                const isFinished = timer.isFinished;
+                const isPaused = timer.isPaused;
+
+                card.className = `session-card glass-card rounded-2xl p-5 shadow-lg border transition-all duration-300 ${
+                    isFinished ? 'pulse-red bg-red-950/20 border-red-500/50' : 'border-slate-700/60'
+                }`;
+
+                // Warna badge ruangan
+                let badgeColor = "bg-blue-500/20 text-blue-400 border-blue-500/30";
+                if (timer.room === 'VVIP') badgeColor = "bg-amber-500/20 text-amber-400 border-amber-500/30";
+                if (timer.room === 'Smoke') badgeColor = "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
+                if (timer.room === 'VIP') badgeColor = "bg-purple-500/20 text-purple-400 border-purple-500/30";
+
+                const progressPercent = Math.max(0, Math.min(100, (timer.remainingSeconds / timer.totalSeconds) * 100));
+
+                card.innerHTML = `
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                        <div class="flex items-center gap-2.5">
+                            <span class="px-3 py-1 text-xs font-bold rounded-lg border ${badgeColor}">
+                                ${timer.room}
+                            </span>
+                            <span class="text-sm font-semibold text-slate-200">
+                                ${timer.station}
+                            </span>
+                        </div>
+                        <span class="text-xs text-slate-400 font-mono">
+                            ${isFinished ? '⚠️ Sewa Berakhir!' : isPaused ? '⏸️ Dijeda' : '⏳ Berjalan'}
+                        </span>
+                    </div>
+
+                    <!-- Countdown Display -->
+                    <div class="text-center py-2">
+                        <div class="timer-display font-mono text-4xl sm:text-5xl font-extrabold tracking-wider ${isFinished ? 'text-red-400' : 'text-slate-100'}">
+                            ${formatTime(timer.remainingSeconds)}
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-slate-900/80 rounded-full h-2 my-4 overflow-hidden border border-slate-800">
+                        <div class="progress-bar h-full ${progressPercent < 10 ? 'bg-red-500' : 'bg-blue-500'} transition-all duration-300" style="width: ${progressPercent}%"></div>
+                    </div>
+
+                    <!-- Action Controls -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            ${!isFinished ? `
+                                <button onclick="togglePause(${timer.id})" class="flex-1 sm:flex-none px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-xl border border-slate-700 transition-all flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid ${isPaused ? 'fa-play text-emerald-400' : 'fa-pause text-amber-400'}"></i>
+                                    ${isPaused ? 'Lanjut' : 'Jeda'}
+                                </button>
+                            ` : ''}
+
+                            <button onclick="addTime(${timer.id}, 30)" class="flex-1 sm:flex-none px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-xl border border-slate-700 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-plus text-blue-400"></i> +30 Menit
+                            </button>
+                        </div>
+
+                        <button onclick="stopTimer(${timer.id})" class="w-full sm:w-auto px-4 py-2 bg-red-600/20 hover:bg-red-600 text-red-300 hover:text-white text-xs font-semibold rounded-xl border border-red-500/30 transition-all flex items-center justify-center gap-1.5 ml-auto">
+                            <i class="fa-solid fa-stop"></i> Selesai / Hapus
+                        </button>
+                    </div>
+                `;
+
+                sessionsContainer.appendChild(card);
+            });
+        }
+    </script>
 </body>
 </html>
